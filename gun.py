@@ -1,5 +1,6 @@
 import math
 from random import choice
+import random
 
 import pygame
 
@@ -46,21 +47,20 @@ class Ball:
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        # FIXME
         speed_lose = 0.9
         self.vy = self.vy - 0.1
         self.x += self.vx
         self.y -= self.vy
-        if self.x <= 20:
+        if self.x <= 10:
             self.x = self.x + 2
             self.vx = -self.vx*speed_lose
-        elif  self.x >= 780:
+        elif  self.x >= 790:
             self.x = self.x - 2
             self.vx = -self.vx * speed_lose
-        if self.y <= 20:
+        if self.y <= 10:
             self.vy = -self.vy*speed_lose
             self.y = self.y + 2
-        elif self.y >= 580:
+        elif self.y >= 590:
             self.vy = -self.vy * speed_lose
             self.y = self.y - 2
 
@@ -82,8 +82,7 @@ class Ball:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
         # FIXME
-        pass
-        #return (((self.x - obj.x)**2 + (self.y - obj.y)**2)) < self.r
+        return ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < self.r**2 + obj.r**2)
 
 
 
@@ -145,25 +144,40 @@ class Gun:
 
 
 class Target:
-    # self.points = 0
-    # self.live = 1
+    def __init__(self):
+        """ Конструктор класса target
+        """
+        self.screen = screen
+        self.x = random.randint(600, 780)
+        self.y = random.randint(300, 550)
+        self.r = random.randint(2, 50)
+        self.color = RED
+        self.points = 0
+        self.live = 1
     # FIXME: don't work!!! How to call this functions when object is created?
-    # self.new_target()
+    #self.new_target()
 
     def new_target(self):
         """ Инициализация новой цели. """
-        x = self.x = rnd(600, 780)
-        y = self.y = rnd(300, 550)
-        r = self.r = rnd(2, 50)
+        x = self.x = random.randint(600, 780)
+        y = self.y = random.randint(300, 550)
+        r = self.r = random.randint(2, 50)
         color = self.color = RED
+        self.live = 1
 
     def hit(self, points=1):
         """Попадание шарика в цель."""
         self.points += points
 
     def draw(self):
-        ...
-        pass
+        self.screen = screen
+        pygame.draw.circle(
+            self.screen,
+            self.color,
+            (self.x, self.y),
+            self.r
+        )
+
 
 
 pygame.init()
