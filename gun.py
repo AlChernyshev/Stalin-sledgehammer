@@ -53,13 +53,13 @@ class Ball:
         if self.vy == 0:
             self.y = H - self.r
             self.vx *= speed_lose
+        if abs(self.vx) < 2:
+            self.vx = 0
         self.x += self.vx
         self.y -= self.vy
         if (self.x <= self.r) and (self.vx < 0):
             self.vx = -self.vx*speed_lose
             self.vy = self.vy * speed_lose
-            if abs(self.vx) < 2:
-                self.vx = 0
         elif  (self.x >= (W - self.r)) and (self.vx > 0):
             self.vx = -self.vx * speed_lose
             self.vy = self.vy * speed_lose
@@ -90,7 +90,7 @@ class Ball:
     def delete(self, bullet):
         """Удаляет неподвижный снаряд"""
         if self.vy**2 +self.vx**2 == 0:
-            self.live -= 10
+            self.live -= 1
         if self.live <= 0:
             balls.pop(balls.index(self))
             bullet -= 1
