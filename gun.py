@@ -47,7 +47,7 @@ class Ball:
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        speed_lose = 0.9
+        speed_lose = 0.5
         if self.vy != 0:
             self.vy = self.vy - 0.2
         if self.vy == 0:
@@ -79,12 +79,21 @@ class Ball:
 
 
     def draw(self):
+        """Рисует снаряд"""
         pygame.draw.circle(
             self.screen,
             self.color,
             (self.x, self.y),
             self.r
         )
+
+    def delete(self, bullet):
+        """Удаляет неподвижный снаряд"""
+        if self.vy**2 +self.vx**2 == 0:
+            self.live -= 10
+        if self.live <= 0:
+            balls.pop(balls.index(self))
+            bullet -= 1
 
     def hittest(self, obj):
         """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
@@ -94,6 +103,8 @@ class Ball:
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
+        #if ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < (self.r + obj.r)**2):
+            #self.live -= 50
         return ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < (self.r + obj.r)**2)
 
 
@@ -247,6 +258,7 @@ while not finished:
 
     for b in balls:
         b.move()
+        b.delete(bullet)
         if b.hittest(target) and target.live:
             target.live = 0
             target.hit()
