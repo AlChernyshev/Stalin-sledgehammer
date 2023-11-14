@@ -212,7 +212,6 @@ while not finished:
     target.draw()
     target.show_points()
     target2.draw()
-    target2.show_points()
     for b in balls:
         b.draw()
     pygame.display.update()
@@ -236,7 +235,7 @@ while not finished:
             target.new_target()
         if b.hittest(target2) and target2.live:
             target2.live = 0
-            target2.hit()
+            target.hit()
             target2.new_target()
     gun.power_up()
 
