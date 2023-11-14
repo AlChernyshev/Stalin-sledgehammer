@@ -166,6 +166,8 @@ class Target:
         self.color = RED
         self.points = 0
         self.live = 1
+        self.vx = random.randint(2, 10)
+        self.vy = random.randint(2, 10)
 
     def new_target(self):
         """ Инициализация новой цели. """
@@ -193,6 +195,20 @@ class Target:
         text1 = f1.render("Количество очков:" + str(self.points), 1, (90, 40, 250))
         screen.blit(text1, (10, 50))
 
+    def move(self):
+        """Движение мишеней с постоянными скоростями и отражение от стен
+        """
+        self.x += self.vx
+        self.y -= self.vy
+        if (self.x <= self.r) and (self.vx < 0):
+            self.vx = -self.vx
+        elif  (self.x >= (W - self.r)) and (self.vx > 0):
+            self.vx = -self.vx
+        if (self.y <= self.r) and (self.vy > 0):
+            self.vy = -self.vy
+        elif (self.y >= (H - self.r)) and (self.vy < 0):
+            self.vy = -self.vy
+
 
 
 pygame.init()
@@ -212,6 +228,8 @@ while not finished:
     target.draw()
     target.show_points()
     target2.draw()
+    target.move()
+    target2.move()
     for b in balls:
         b.draw()
     pygame.display.update()
