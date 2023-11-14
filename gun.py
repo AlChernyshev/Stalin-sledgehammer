@@ -18,8 +18,8 @@ WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
-WIDTH = 800
-HEIGHT = 600
+W = 800
+H = 600
 
 
 class Ball:
@@ -48,21 +48,34 @@ class Ball:
         и стен по краям окна (размер окна 800х600).
         """
         speed_lose = 0.9
-        self.vy = self.vy - 0.1
+        if self.vy != 0:
+            self.vy = self.vy - 0.2
+        if self.vy == 0:
+            self.y = H - self.r
+            self.vx *= speed_lose
         self.x += self.vx
         self.y -= self.vy
-        if self.x <= 10:
-            self.x = self.x + 2
+        if (self.x <= self.r) and (self.vx < 0):
             self.vx = -self.vx*speed_lose
-        elif  self.x >= 790:
-            self.x = self.x - 2
+            self.vy = self.vy * speed_lose
+            if abs(self.vx) < 2:
+                self.vx = 0
+        elif  (self.x >= (W - self.r)) and (self.vx > 0):
             self.vx = -self.vx * speed_lose
-        if self.y <= 10:
+            self.vy = self.vy * speed_lose
+            if abs(self.vx) < 2:
+                self.vx = 0
+        if (self.y <= self.r) and (self.vy > 0):
             self.vy = -self.vy*speed_lose
-            self.y = self.y + 2
-        elif self.y >= 590:
+            self.vx = self.vx * speed_lose
+            if abs(self.vy) < 5:
+                self.vy = 0
+        elif (self.y >= (H - self.r)) and (self.vy < 0):
             self.vy = -self.vy * speed_lose
-            self.y = self.y - 2
+            self.vx = self.vx * speed_lose
+            if abs(self.vy) < 5:
+                self.vy = 0
+
 
 
     def draw(self):
@@ -81,8 +94,7 @@ class Ball:
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
-        # FIXME
-        return ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < self.r**2 + obj.r**2)
+        return ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < (self.r + obj.r)**2)
 
 
 
@@ -126,12 +138,12 @@ class Gun:
             self.color = GREY
 
     def draw(self):
-        pygame.draw.polygon(
+        r = pygame.Rect(40, 450, 10, 5)
+        pygame.draw.rect(
             self.screen,
             self.color,
-            [[self.x, self.y], [self.x, self.y+5], [self.x+10, self.y+5], [self.x+10, self.y]]
+            r
         )
-        pass
         # FIXIT don't know how to do it
 
     def power_up(self):
@@ -154,8 +166,6 @@ class Target:
         self.color = RED
         self.points = 0
         self.live = 1
-    # FIXME: don't work!!! How to call this functions when object is created?
-    #self.new_target()
 
     def new_target(self):
         """ Инициализация новой цели. """
@@ -170,7 +180,6 @@ class Target:
         self.points += points
 
     def draw(self):
-        self.screen = screen
         pygame.draw.circle(
             self.screen,
             self.color,
@@ -178,22 +187,32 @@ class Target:
             self.r
         )
 
+    def show_points(self):
+        """Выводит счетчик очков на экран"""
+        f1 = pygame.font.Font(None, 36)
+        text1 = f1.render("Количество очков:" + str(self.points), 1, (90, 40, 250))
+        screen.blit(text1, (10, 50))
+
 
 
 pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((W, H))
 bullet = 0
 balls = []
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
 target = Target()
+target2 = Target()
 finished = False
 
 while not finished:
     screen.fill(WHITE)
     gun.draw()
     target.draw()
+    target.show_points()
+    target2.draw()
+    target2.show_points()
     for b in balls:
         b.draw()
     pygame.display.update()
@@ -215,6 +234,10 @@ while not finished:
             target.live = 0
             target.hit()
             target.new_target()
+        if b.hittest(target2) and target2.live:
+            target2.live = 0
+            target2.hit()
+            target2.new_target()
     gun.power_up()
 
 pygame.quit()
