@@ -16,7 +16,7 @@ CYAN = 0x00FFCC
 BLACK = (0, 0, 0)
 WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
-GAME_COLORS = [RED, BLUE, YELLOW, GREEN, MAGENTA, CYAN]
+GAME_COLORS = [BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
 W = 800
 H = 600
@@ -47,10 +47,10 @@ class Ball:
         self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
         и стен по краям окна (размер окна 800х600).
         """
-        speed_lose = 0.5
-        if self.vy != 0:
+        speed_lose = 0.9
+        if (self.vy != 0) or (self.y < H - 2*self.r):
             self.vy = self.vy - 0.2
-        if self.vy == 0:
+        if (self.vy == 0) and (self.y > H - 2*self.r):
             self.y = H - self.r
             self.vx *= speed_lose
         if abs(self.vx) < 2:
@@ -103,10 +103,26 @@ class Ball:
         Returns:
             Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
-        #if ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < (self.r + obj.r)**2):
-            #self.live -= 50
         return ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < (self.r + obj.r)**2)
 
+    def hitevent(self):
+        """Описывает что происходит с снарядом при столкновение"""
+        self.live -= 50 #Удаление снарядов при столкновении с мищенью
+
+class ExplosiveBall(Ball):
+    """Тип снарядов которые при столкновении с целью распадаются на несколько"""
+    def hitevent(self):
+        """Описывает что происходит с снарядом при столкновение"""
+        self.live -= 50 #Удаление снарядов при столкновении с мищенью
+        for i in [1, -1]:
+            for j in [1, -1]:
+                new_ball = Ball(self.screen)
+                new_ball.vx = i*self.vx
+                new_ball.vy = j*self.vy
+                new_ball.x = self.x
+                new_ball.y = self.y
+                new_ball.r = 3
+                balls.append(new_ball)
 
 
 class Gun:
@@ -118,6 +134,7 @@ class Gun:
         self.color = GREY
         self.x = x
         self.y = y
+        self.type = 1
 
     def fire2_start(self, event):
         self.f2_on = 1
@@ -131,6 +148,10 @@ class Gun:
         global balls, bullet
         bullet += 1
         new_ball = Ball(self.screen)
+        if self.type == 1:
+            new_ball = Ball(self.screen)
+        if self.type == 2:
+            new_ball = ExplosiveBall(self.screen)
         new_ball.r += 5
         self.an = math.atan2((event.pos[1]-new_ball.y), (event.pos[0]-new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
@@ -165,6 +186,11 @@ class Gun:
         else:
             self.color = GREY
 
+    def typeBall(self, event):
+        if event.key == pygame.K_1:
+            self.type = 1
+        if event.key == pygame.K_2:
+            self.type = 2
 
 class Target:
     def __init__(self):
@@ -255,10 +281,14 @@ while not finished:
             gun.fire2_end(event)
         elif event.type == pygame.MOUSEMOTION:
             gun.targetting(event)
+        elif event.type == pygame.KEYDOWN:
+            gun.typeBall(event)
 
     for b in balls:
         b.move()
         b.delete(bullet)
+        if b.hittest(target) or b.hittest(target2):
+            b.hitevent()
         if b.hittest(target) and target.live:
             target.live = 0
             target.hit()
