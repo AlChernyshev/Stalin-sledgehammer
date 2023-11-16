@@ -38,6 +38,9 @@ class Ball:
         self.color = choice(GAME_COLORS)
         self.live = 30
 
+    def position(self, x, y):
+        self.x = x
+        self.y = y
 
     def move(self):
         """Переместить мяч по прошествии единицы времени.
@@ -149,8 +152,10 @@ class Gun:
         new_ball = Ball(self.screen)
         if self.type == 1:
             new_ball = Ball(self.screen)
+            new_ball.position(self.x, self.y)
         if self.type == 2:
             new_ball = ExplosiveBall(self.screen)
+            new_ball.position(self.x, self.y)
         new_ball.r += 5
         self.an = math.atan2((event.pos[1]-new_ball.y), (event.pos[0]-new_ball.x))
         new_ball.vx = self.f2_power * math.cos(self.an)
@@ -190,6 +195,12 @@ class Gun:
             self.type = 1
         if event.key == pygame.K_2:
             self.type = 2
+
+    def move(self, keys):
+        if keys[pygame.K_LEFT]:
+            self.x -= 3
+        elif keys[pygame.K_RIGHT]:
+            self.x += 3
 
 class Target:
     def __init__(self):
@@ -261,12 +272,34 @@ class TargetRandom(Target):
         self.vx = random.randint(2, 10)
         self.vy = random.randint(2, 10)
 
+class TargetTeleport(Target):
+    def __init__(self):
+        super().__init__()
+        self.vx = random.randint(2, 10)
+        self.vy = random.randint(2, 10)
+
+    """def move(self):
+        a = pygame.time.get_ticks()
+        if a%1000 == 0:
+            self.x += self.vx*FPS
+            self.y -= self.vy*FPS
+            if (self.x <= self.r) and (self.vx < 0):
+                self.vx = -self.vx
+            elif  (self.x >= (W - self.r)) and (self.vx > 0):
+                self.vx = -self.vx
+            if (self.y <= self.r) and (self.vy > 0):
+                self.vy = -self.vy
+            elif (self.y >= (H - self.r)) and (self.vy < 0):
+                self.vy = -self.vy"""
+
 pygame.init()
+
 Phon_surf = pygame.image.load('image/Phon.jpg')
 Phon_rect = Phon_surf.get_rect(bottomright=(W, H))
 scale = pygame.transform.scale(
     Phon_surf, (W,H))
 scale_rect = scale.get_rect(center=(W/2, H/2))
+
 screen = pygame.display.set_mode((W, H))
 bullet = 0
 balls = []
@@ -274,15 +307,17 @@ balls = []
 clock = pygame.time.Clock()
 gun = Gun(screen)
 target = TargetRandom()
-target2 = TargetHorizontal()
+target2 = TargetRandom()
 finished = False
 
 while not finished:
     screen.fill(WHITE)
     screen.blit(scale, scale_rect)
     gun.draw()
-    target.draw()
+    keys = pygame.key.get_pressed()
+    gun.move(keys)
     target.show_points()
+    target.draw()
     target2.draw()
     target.move()
     target2.move()
