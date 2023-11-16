@@ -18,12 +18,11 @@ WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 GAME_COLORS = [BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
-W = 800
-H = 600
-
+W = 1600
+H = 800
 
 class Ball:
-    def __init__(self, screen: pygame.Surface, x=40, y=450):
+    def __init__(self, screen: pygame.Surface, x=40, y= H-100):
         """ Конструктор класса ball
 
         Args:
@@ -126,7 +125,7 @@ class ExplosiveBall(Ball):
 
 
 class Gun:
-    def __init__(self, screen, x=40, y=450):
+    def __init__(self, screen, x=40, y=H-100):
         self.screen = screen
         self.f2_power = 10
         self.f2_on = 0
@@ -170,7 +169,7 @@ class Gun:
             self.color = GREY
 
     def draw(self):
-        r = pygame.Rect(40, 450, 10, 5)
+        r = pygame.Rect(self.x, self.y, 10, 5)
         pygame.draw.rect(
             self.screen,
             self.color,
@@ -197,19 +196,19 @@ class Target:
         """ Конструктор класса target
         """
         self.screen = screen
-        self.x = random.randint(600, 780)
-        self.y = random.randint(300, 550)
+        self.x = random.randint(W-300, W-50)
+        self.y = random.randint(H-200, H-50)
         self.r = random.randint(2, 50)
         self.color = RED
         self.points = 0
         self.live = 1
-        self.vx = random.randint(2, 10)
-        self.vy = random.randint(2, 10)
+        self.vx = 0
+        self.vy = 0
 
     def new_target(self):
         """ Инициализация новой цели. """
-        x = self.x = random.randint(600, 780)
-        y = self.y = random.randint(300, 550)
+        x = self.x = random.randint(W-300, W-50)
+        y = self.y = random.randint(H-200, H-50)
         r = self.r = random.randint(2, 50)
         color = self.color = RED
         self.live = 1
@@ -246,21 +245,41 @@ class Target:
         elif (self.y >= (H - self.r)) and (self.vy < 0):
             self.vy = -self.vy
 
+class TargetHorizontal(Target):
+    def __init__(self):
+        super().__init__()
+        self.vx = random.randint(2, 10)
 
+class TargetVertical(Target):
+    def __init__(self):
+        super().__init__()
+        self.vy = random.randint(2, 10)
+
+class TargetRandom(Target):
+    def __init__(self):
+        super().__init__()
+        self.vx = random.randint(2, 10)
+        self.vy = random.randint(2, 10)
 
 pygame.init()
+Phon_surf = pygame.image.load('image/Phon.jpg')
+Phon_rect = Phon_surf.get_rect(bottomright=(W, H))
+scale = pygame.transform.scale(
+    Phon_surf, (W,H))
+scale_rect = scale.get_rect(center=(W/2, H/2))
 screen = pygame.display.set_mode((W, H))
 bullet = 0
 balls = []
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
-target = Target()
-target2 = Target()
+target = TargetRandom()
+target2 = TargetHorizontal()
 finished = False
 
 while not finished:
     screen.fill(WHITE)
+    screen.blit(scale, scale_rect)
     gun.draw()
     target.draw()
     target.show_points()
