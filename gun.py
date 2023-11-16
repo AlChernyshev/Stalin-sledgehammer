@@ -89,13 +89,12 @@ class Ball:
             self.r
         )
 
-    def delete(self, bullet):
+    def delete(self):
         """Удаляет неподвижный снаряд"""
         if self.vy**2 +self.vx**2 == 0:
             self.live -= 1
         if self.live <= 0:
             balls.pop(balls.index(self))
-            bullet -= 1
 
     def hittest(self, obj):
         """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
@@ -135,6 +134,19 @@ class Bomb(Ball):
             self.vx = self.vx * 0
             if abs(self.vy) < 5:
                 self.vy = 0
+    def delete(self):
+        if self.y >= H-self.r:
+            self.live -= 50
+        if self.live <= 0:
+            bombs.pop(bombs.index(self))
+
+    def draw(self):
+        self.surf = pygame.image.load('image/bomb.png')
+        self.surf.set_colorkey((255, 255, 255))
+        scale = pygame.transform.scale(
+            self.surf, (20, 30))
+        scale_rect = scale.get_rect(center=(self.x, self.y))
+        screen.blit(scale, scale_rect)
 
 
 class Gun:
@@ -239,19 +251,18 @@ class Target:
         self.points += points
 
     def draw(self):
-        """self.surf = pygame.image.load('image/target.jpg')
-        self.rect = self.surf.get_rect(bottomright=(W, H))
+        self.surf = pygame.image.load('image/target3.png')
+        self.surf.set_colorkey((255, 255, 255))
         scale = pygame.transform.scale(
-            self.surf, (50, 50))
-        scale_rect = scale.get_rect(center=(W / 2, H / 2))
+            self.surf, (100, 100))
+        scale_rect = scale.get_rect(center=(self.x, self.y))
         screen.blit(scale, scale_rect)
-        """
-        pygame.draw.circle(
+        """pygame.draw.circle(
             self.screen,
             self.color,
             (self.x, self.y),
             self.r
-        )
+        )"""
 
     def show_points(self):
         """Выводит счетчик очков на экран"""
@@ -333,7 +344,7 @@ bombs = []
 clock = pygame.time.Clock()
 gun = Gun(screen)
 target = TargetRandom()
-target2 = TargetRandom()
+target2 = Target()
 finished = False
 
 while not finished:
@@ -371,7 +382,7 @@ while not finished:
 
     for b in balls:
         b.move()
-        b.delete(bullet)
+        b.delete()
         if b.hittest(target) or b.hittest(target2):
             b.hitevent()
         if b.hittest(target) and target.live:
@@ -386,5 +397,6 @@ while not finished:
 
     for bm in bombs:
         bm.move()
+        bm.delete()
 
 pygame.quit()
