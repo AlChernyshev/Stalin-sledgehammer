@@ -18,8 +18,8 @@ WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 GAME_COLORS = [BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
-W = 1600
-H = 800
+W = 1024
+H = 600
 
 class Ball:
     def __init__(self, screen: pygame.Surface, x=40, y= H-100):
@@ -123,8 +123,18 @@ class ExplosiveBall(Ball):
                 new_ball.vy = j*self.vy
                 new_ball.x = self.x
                 new_ball.y = self.y
-                new_ball.r = 3
+                new_ball.r = 5
                 balls.append(new_ball)
+
+class Bomb(Ball):
+    def move(self):
+        self.vy -= 0.2
+        self.y -= self.vy
+        if (self.y >= (H - self.r)) and (self.vy < 0):
+            self.vy = -self.vy * 0
+            self.vx = self.vx * 0
+            if abs(self.vy) < 5:
+                self.vy = 0
 
 
 class Gun:
@@ -209,7 +219,7 @@ class Target:
         self.screen = screen
         self.x = random.randint(W-300, W-50)
         self.y = random.randint(H-200, H-50)
-        self.r = random.randint(2, 50)
+        self.r = random.randint(5, 50)
         self.color = RED
         self.points = 0
         self.live = 1
@@ -220,7 +230,7 @@ class Target:
         """ Инициализация новой цели. """
         x = self.x = random.randint(W-300, W-50)
         y = self.y = random.randint(H-200, H-50)
-        r = self.r = random.randint(2, 50)
+        r = self.r = random.randint(5, 50)
         color = self.color = RED
         self.live = 1
 
@@ -229,6 +239,13 @@ class Target:
         self.points += points
 
     def draw(self):
+        """self.surf = pygame.image.load('image/target.jpg')
+        self.rect = self.surf.get_rect(bottomright=(W, H))
+        scale = pygame.transform.scale(
+            self.surf, (50, 50))
+        scale_rect = scale.get_rect(center=(W / 2, H / 2))
+        screen.blit(scale, scale_rect)
+        """
         pygame.draw.circle(
             self.screen,
             self.color,
@@ -255,6 +272,14 @@ class Target:
             self.vy = -self.vy
         elif (self.y >= (H - self.r)) and (self.vy < 0):
             self.vy = -self.vy
+
+    def targetbomb(self):
+        """описывает сброс бомб мишенью"""
+        global bombs
+        new_bomb = Bomb(self.screen)
+        new_bomb.position(self.x, self.y)
+        bombs.append(new_bomb)
+
 
 class TargetHorizontal(Target):
     def __init__(self):
@@ -294,7 +319,7 @@ class TargetTeleport(Target):
 
 pygame.init()
 
-Phon_surf = pygame.image.load('image/Phon.jpg')
+Phon_surf = pygame.image.load('image/BG7.jpg')
 Phon_rect = Phon_surf.get_rect(bottomright=(W, H))
 scale = pygame.transform.scale(
     Phon_surf, (W,H))
@@ -303,6 +328,7 @@ scale_rect = scale.get_rect(center=(W/2, H/2))
 screen = pygame.display.set_mode((W, H))
 bullet = 0
 balls = []
+bombs = []
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
@@ -321,9 +347,14 @@ while not finished:
     target2.draw()
     target.move()
     target2.move()
+    target.targetbomb()
     for b in balls:
         b.draw()
+    for bm in bombs:
+        bm.draw()
     pygame.display.update()
+
+
 
     clock.tick(FPS)
     for event in pygame.event.get():
@@ -352,5 +383,8 @@ while not finished:
             target.hit()
             target2.new_target()
     gun.power_up()
+
+    for bm in bombs:
+        bm.move()
 
 pygame.quit()
