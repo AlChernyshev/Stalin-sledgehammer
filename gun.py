@@ -130,18 +130,26 @@ class Bomb(Ball):
         self.vy -= 0.2
         self.y -= self.vy
         if (self.y >= (H - self.r)) and (self.vy < 0):
-            self.vy = -self.vy * 0
+            self.vy = self.vy * 0
             self.vx = self.vx * 0
-            if abs(self.vy) < 5:
-                self.vy = 0
+
     def delete(self):
         if self.y >= H-self.r:
             self.live -= 50
         if self.live <= 0:
+            self.explosion()
             bombs.pop(bombs.index(self))
 
     def draw(self):
         self.surf = pygame.image.load('image/bomb.png')
+        self.surf.set_colorkey((255, 255, 255))
+        scale = pygame.transform.scale(
+            self.surf, (20, 30))
+        scale_rect = scale.get_rect(center=(self.x, self.y))
+        screen.blit(scale, scale_rect)
+
+    def explosion(self):
+        self.surf = pygame.image.load('image/explosion1.png')
         self.surf.set_colorkey((255, 255, 255))
         scale = pygame.transform.scale(
             self.surf, (20, 30))
@@ -219,9 +227,9 @@ class Gun:
             self.type = 2
 
     def move(self, keys):
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] and self.x > 20:
             self.x -= 3
-        elif keys[pygame.K_RIGHT]:
+        elif keys[pygame.K_RIGHT] and self.x < W-20:
             self.x += 3
 
 class Target:
@@ -369,6 +377,93 @@ class TargetTeleport(Target):
                 self.r
             )
 
+class Plane():
+    def __init__(self):
+        """ Конструктор класса Plane
+        """
+        self.screen = screen
+        self.x = random.randint(W-300, W-50)
+        self.y = random.randint(H-200, H-50)
+        self.r = random.randint(5, 50)
+        self.color = RED
+        self.points = 0
+        self.live = 1
+        self.vx = 0
+        self.vy = 0
+        self.start_ticks = pygame.time.get_ticks()
+
+    def new_target(self):
+        """ Инициализация новой цели. """
+        self.x = random.randint(W-300, W-50)
+        self.y = random.randint(H-200, H-50)
+        self.r = random.randint(5, 50)
+        self.vx = 0
+        self.vy = 0
+        self.color = RED
+        self.live = 1
+
+    def hit(self, points=1):
+        """Попадание шарика в цель."""
+        self.points += points
+
+    def draw(self):
+        self.surf = pygame.image.load('image/target6.png')
+        scale = pygame.transform.scale(
+            self.surf, (100, 50))
+        scale = pygame.transform.flip(
+            scale, (self.vx > 0), False)
+        if self.vx == 0:
+            if self.vy < 0:
+                scale = pygame.transform.rotate(scale, 90)
+            if self.vy > 0:
+                scale = pygame.transform.rotate(scale, -90)
+        else:
+            scale = pygame.transform.rotate(scale, math.atan(self.vy/self.vx)/(2*math.pi)*360)
+
+        self.rect = scale.get_rect(center=(self.x, self.y))
+        self.surf.set_colorkey((255, 255, 255))
+        screen.blit(scale, self.rect)
+        """pygame.draw.circle(
+            self.screen,
+            self.color,
+            (self.x, self.y),
+            self.r
+        )"""
+
+    def show_points(self):
+        """Выводит счетчик очков на экран"""
+        f1 = pygame.font.Font(None, 36)
+        text1 = f1.render("Количество очков:" + str(self.points), 1, (90, 40, 250))
+        screen.blit(text1, (10, 50))
+    def bomb(self, keys):
+        """описывает сброс бомб мишенью"""
+        global bombs
+        if keys[pygame.K_SPACE]:
+            new_bomb = Bomb(self.screen)
+            new_bomb.position(self.x, self.y)
+            bombs.append(new_bomb)
+        self.start_ticks = pygame.time.get_ticks()
+    def move(self, keys):
+        if keys[pygame.K_a]:
+            self.vx -= 0.3
+        elif keys[pygame.K_d]:
+            self.vx += 0.3
+        elif keys[pygame.K_w]:
+            self.vy += 0.3
+        elif keys[pygame.K_s]:
+            self.vy -= 0.3
+        self.x += self.vx
+        self.y -= self.vy
+        if (self.x <= self.r) and (self.vx < 0):
+            self.vx = -self.vx
+        elif  (self.x >= (W - self.r)) and (self.vx > 0):
+            self.vx = -self.vx
+        if (self.y <= self.r) and (self.vy > 0):
+            self.vy = -self.vy
+        elif (self.y >= (H - self.r)) and (self.vy < 0):
+            self.vy = -self.vy
+
+
 pygame.init()
 
 BG_surf = pygame.image.load('image/BG7.jpg')
@@ -386,6 +481,7 @@ clock = pygame.time.Clock()
 gun = Gun(screen)
 target = TargetRandom()
 target2 = TargetTeleport()
+plane = Plane()
 finished = False
 
 while not finished:
@@ -399,6 +495,9 @@ while not finished:
     target2.draw()
     target.move()
     target2.move()
+    plane.draw()
+    plane.move(keys)
+    plane.bomb(keys)
 
     for b in balls:
         b.draw()
