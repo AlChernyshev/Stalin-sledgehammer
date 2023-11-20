@@ -149,12 +149,13 @@ class Bomb(Ball):
         screen.blit(scale, scale_rect)
 
     def explosion(self):
-        self.surf = pygame.image.load('image/explosion1.png')
-        self.surf.set_colorkey((255, 255, 255))
-        scale = pygame.transform.scale(
-            self.surf, (20, 30))
-        scale_rect = scale.get_rect(center=(self.x, self.y))
-        screen.blit(scale, scale_rect)
+        for i in range(1, 6):
+            self.surf = pygame.image.load('image/explosion'+str(i)+'.png')
+            self.surf.set_colorkey((255, 255, 255))
+            scale = pygame.transform.scale(
+                self.surf, (20, 30))
+            scale_rect = scale.get_rect(center=(self.x, self.y))
+            screen.blit(scale, scale_rect)
 
 
 class Gun:
@@ -276,12 +277,6 @@ class Target:
         self.rect = scale.get_rect(center=(self.x, self.y))
         self.surf.set_colorkey((255, 255, 255))
         screen.blit(scale, self.rect)
-        """pygame.draw.circle(
-            self.screen,
-            self.color,
-            (self.x, self.y),
-            self.r
-        )"""
 
     def show_points(self):
         """Выводит счетчик очков на экран"""
@@ -468,9 +463,9 @@ pygame.init()
 
 BG_surf = pygame.image.load('image/BG7.jpg')
 BG_rect = BG_surf.get_rect(bottomright=(W, H))
-scale = pygame.transform.scale(
+scale_BG = pygame.transform.scale(
     BG_surf, (W,H))
-scale_rect = scale.get_rect(center=(W/2, H/2))
+scale_rect_BG = scale_BG.get_rect(center=(W/2, H/2))
 
 screen = pygame.display.set_mode((W, H))
 bullet = 0
@@ -486,7 +481,7 @@ finished = False
 
 while not finished:
     screen.fill(WHITE)
-    screen.blit(scale, scale_rect)
+    screen.blit(scale_BG, scale_rect_BG)
     gun.draw()
     keys = pygame.key.get_pressed()
     gun.move(keys)
@@ -542,5 +537,6 @@ while not finished:
     for bm in bombs:
         bm.move()
         bm.delete()
+        pygame.display.update()
 
 pygame.quit()
