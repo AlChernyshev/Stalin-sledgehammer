@@ -139,7 +139,6 @@ class Bomb(Ball):
         if self.live <= 0:
             self.explosion()
             bombs.pop(bombs.index(self))
-
     def draw(self):
         self.surf = pygame.image.load('image/bomb.png')
         self.surf.set_colorkey((255, 255, 255))
@@ -149,13 +148,32 @@ class Bomb(Ball):
         screen.blit(scale, scale_rect)
 
     def explosion(self):
-        for i in range(1, 6):
-            self.surf = pygame.image.load('image/explosion'+str(i)+'.png')
+        global explosions
+        new_explosion = Explosion()
+        new_explosion.x = self.x
+        new_explosion.y = self.y
+        new_explosion.frame = 1
+        explosions.append(new_explosion)
+
+
+class Explosion:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.surf = pygame.image.load('image/explosion1.png')
+        self.frame = 0
+    def draw(self):
+        if (self.frame > 0) and (self.frame < 24):
+            self.frame += 24/30
+            self.surf = pygame.image.load('image/explosion' + str(int(self.frame//(24/15))) + '.png')
             self.surf.set_colorkey((255, 255, 255))
-            scale = pygame.transform.scale(
-                self.surf, (20, 30))
-            scale_rect = scale.get_rect(center=(self.x, self.y))
+            scale = pygame.transform.scale(self.surf, (100, 150))
+            scale_rect = scale.get_rect(center=(self.x, self.y-scale.get_height()/2))
             screen.blit(scale, scale_rect)
+
+    def delete(self):
+        if self.frame > 24:
+            explosions.pop(explosions.index(self))
 
 
 class Gun:
@@ -471,6 +489,7 @@ screen = pygame.display.set_mode((W, H))
 bullet = 0
 balls = []
 bombs = []
+explosions = []
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
@@ -481,7 +500,7 @@ finished = False
 
 while not finished:
     screen.fill(WHITE)
-    screen.blit(scale_BG, scale_rect_BG)
+    #screen.blit(scale_BG, scale_rect_BG)
     gun.draw()
     keys = pygame.key.get_pressed()
     gun.move(keys)
@@ -498,6 +517,8 @@ while not finished:
         b.draw()
     for bm in bombs:
         bm.draw()
+    for e in explosions:
+        e.draw()
     pygame.display.update()
 
 
@@ -537,6 +558,8 @@ while not finished:
     for bm in bombs:
         bm.move()
         bm.delete()
-        pygame.display.update()
+
+    for e in explosions:
+        e.delete()
 
 pygame.quit()
