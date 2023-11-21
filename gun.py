@@ -167,7 +167,7 @@ class Explosion:
             self.frame += 24/30
             self.surf = pygame.image.load('image/explosion' + str(int(self.frame//(24/15))) + '.png')
             self.surf.set_colorkey((255, 255, 255))
-            scale = pygame.transform.scale(self.surf, (100, 150))
+            scale = pygame.transform.scale(self.surf, (40, 60))
             scale_rect = scale.get_rect(center=(self.x, self.y-scale.get_height()/2))
             screen.blit(scale, scale_rect)
 
@@ -479,7 +479,7 @@ class Plane():
 
 pygame.init()
 
-BG_surf = pygame.image.load('image/BG7.jpg')
+BG_surf = pygame.image.load('image/BG8.jpg')
 BG_rect = BG_surf.get_rect(bottomright=(W, H))
 scale_BG = pygame.transform.scale(
     BG_surf, (W,H))
@@ -497,10 +497,29 @@ target = TargetRandom()
 target2 = TargetTeleport()
 plane = Plane()
 finished = False
+menu = True
 
 while not finished:
-    screen.fill(WHITE)
-    #screen.blit(scale_BG, scale_rect_BG)
+    while menu:
+        screen.fill(WHITE)
+        f1 = pygame.font.Font(None, 36)
+        text1 = f1.render("Количество очков:", 1, (90, 40, 250))
+        screen.blit(text1, (10, 50))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                finished = True
+                menu = False
+        keys = pygame.key.get_pressed()
+        for i, j in zip(range(1, 9), [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8]):
+            if keys[j]:
+                BG_surf = pygame.image.load('image/BG' + str(i) + '.jpg')
+                BG_rect = BG_surf.get_rect(bottomright=(W, H))
+                scale_BG = pygame.transform.scale(
+                    BG_surf, (W, H))
+                scale_rect_BG = scale_BG.get_rect(center=(W / 2, H / 2))
+                menu = False
+
+    screen.blit(scale_BG, scale_rect_BG)
     gun.draw()
     keys = pygame.key.get_pressed()
     gun.move(keys)
