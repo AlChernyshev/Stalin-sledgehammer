@@ -18,8 +18,10 @@ WHITE = 0xFFFFFF
 GREY = 0x7D7D7D
 GAME_COLORS = [BLUE, YELLOW, GREEN, MAGENTA, CYAN]
 
-W = 1024
-H = 600
+W = 1800
+H = 900
+W0 = W
+H0 = H
 
 class Ball:
     def __init__(self, screen: pygame.Surface, x=40, y= H-100):
@@ -177,14 +179,14 @@ class Explosion:
 
 
 class Gun:
-    def __init__(self, screen, x=40, y=H-100):
+    def __init__(self, screen):
         self.screen = screen
         self.f2_power = 10
         self.f2_on = 0
         self.an = 1
         self.color = GREY
-        self.x = x
-        self.y = y
+        self.x = 40
+        self.y = H-100
         self.type = 1
 
     def fire2_start(self, event):
@@ -229,7 +231,6 @@ class Gun:
             self.color,
             r
         )
-        # FIXIT don't know how to do it
 
     def power_up(self):
         if self.f2_on:
@@ -282,8 +283,7 @@ class Target:
 
     def draw(self):
         self.surf = pygame.image.load('image/target6.png')
-        scale = pygame.transform.scale(
-            self.surf, (100, 50))
+        scale = pygame.transform.scale(self.surf, (100, 50))
         scale = pygame.transform.flip(
             scale, (self.vx > 0), False)
         if self.vx == 0:
@@ -421,8 +421,7 @@ class Plane():
 
     def draw(self):
         self.surf = pygame.image.load('image/target6.png')
-        scale = pygame.transform.scale(
-            self.surf, (100, 50))
+        scale = pygame.transform.scale(self.surf, (100, 50))
         scale = pygame.transform.flip(
             scale, (self.vx > 0), False)
         if self.vx == 0:
@@ -480,31 +479,33 @@ class Plane():
 pygame.init()
 
 BG_surf = pygame.image.load('image/BG8.jpg')
-BG_rect = BG_surf.get_rect(bottomright=(W, H))
-scale_BG = pygame.transform.scale(
-    BG_surf, (W,H))
-scale_rect_BG = scale_BG.get_rect(center=(W/2, H/2))
+BG_scale = pygame.transform.scale(BG_surf, (W,H))
+BG_scale_rect = BG_scale.get_rect(center=(W/2, H/2))
 
-screen = pygame.display.set_mode((W, H))
+screen = pygame.display.set_mode((800, 600))
 bullet = 0
 balls = []
 bombs = []
 explosions = []
-
-clock = pygame.time.Clock()
-gun = Gun(screen)
-target = TargetRandom()
-target2 = TargetTeleport()
-plane = Plane()
 finished = False
 menu = True
 
+"""Настройка фона"""
 while not finished:
     while menu:
         screen.fill(WHITE)
-        f1 = pygame.font.Font(None, 36)
-        text1 = f1.render("Количество очков:", 1, (90, 40, 250))
-        screen.blit(text1, (10, 50))
+        f = pygame.font.Font(None, 56)
+        text = f.render("Выберите фон:", 1, (90, 140, 250))
+        screen.blit(text, (250, 50))
+        for i, j in zip(["1.Аустерлиц", "2.Бородино", "3.Переход через Альпы", "4.Принцеса Греза"], range(1,5)):
+            f1 = pygame.font.Font(None, 46)
+            text1 = f1.render(i, 1, (0, 0, 0))
+            screen.blit(text1, (50, 50 + j*50))
+        for i, j in zip(["5.Апофеоз войны", "6.У крепостной стены", "7.Госдолг США", "8.Черный фон"], range(1,5)):
+            f1 = pygame.font.Font(None, 46)
+            text1 = f1.render(i, 1, (0, 0, 0))
+            screen.blit(text1, (450, 50 + j*50))
+        pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
@@ -512,14 +513,31 @@ while not finished:
         keys = pygame.key.get_pressed()
         for i, j in zip(range(1, 9), [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8]):
             if keys[j]:
-                BG_surf = pygame.image.load('image/BG' + str(i) + '.jpg')
-                BG_rect = BG_surf.get_rect(bottomright=(W, H))
-                scale_BG = pygame.transform.scale(
-                    BG_surf, (W, H))
-                scale_rect_BG = scale_BG.get_rect(center=(W / 2, H / 2))
+                image = 'image/BG' + str(i) + '.jpg'
+                BG_surf = pygame.image.load(image)
+                BG_W = BG_surf.get_width()
+                BG_H = BG_surf.get_height()
+                scale = 1
+                if (BG_W > W0) or (BG_H > H0):
+                    scale = max(BG_W/W, BG_H/H)
+                W = int(BG_W/scale)
+                H = int(BG_H/scale)
+                BG_scale = pygame.transform.scale(BG_surf, (W, H))
+                BG_scale_rect = BG_scale.get_rect(center=(W / 2, H / 2))
+                screen = pygame.display.set_mode((W, H), )
                 menu = False
+                finished = True
+                #Изменить позицию окна
 
-    screen.blit(scale_BG, scale_rect_BG)
+clock = pygame.time.Clock()
+gun = Gun(screen)
+target = TargetRandom()
+target2 = TargetTeleport()
+plane = Plane()
+finished = False
+
+while not finished:
+    screen.blit(BG_scale, BG_scale_rect)
     gun.draw()
     keys = pygame.key.get_pressed()
     gun.move(keys)
