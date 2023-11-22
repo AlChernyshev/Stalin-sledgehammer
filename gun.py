@@ -218,6 +218,7 @@ class Gun:
         self.type = 1
         self.r = 25
         self.live = 5
+        self.max_live = self.live
         self.time = pygame.time.get_ticks()
 
     def fire2_start(self, event):
@@ -286,16 +287,24 @@ class Gun:
             self.vx = -5
 
     def hit(self):
-        if (pygame.time.get_ticks()-self.time) > 1000:
+        if (pygame.time.get_ticks()-self.time) > 1200:
             self.live -= 1
             self.time = pygame.time.get_ticks()
 
     def game_over(self):
         if self.live <= 0:
             """Завершает игру если закончились жизни"""
+            self.surf = pygame.image.load('image/death.jpg')
+            scale = pygame.transform.scale(self.surf, (W, H))
+            self.rect = scale.get_rect(center=(W/2, H/2))
+            screen.blit(scale, self.rect)
             f1 = pygame.font.Font(None, 36)
-            text1 = f1.render("Поражение", 1, (90, 40, 250))
-            screen.blit(text1, (200, 250))
+            text1 = f1.render("Набранный счет: " + str(points), 1, (82,2,5))
+            screen.blit(text1, (W*0.4, H*0.6))
+
+    def hp_bar(self):
+        pygame.draw.rect(self.screen, (0, 0, 0), (W - 221, 9, 202, 32), 1)
+        pygame.draw.rect(self.screen, (242, 11, 7), (W-220, 10, (200//self.max_live)*self.live, 30))
 
 class Target:
     def __init__(self):
@@ -328,6 +337,7 @@ class Target:
         points += 1
 
     def draw(self):
+        """Отрисовка мишени с загруженного изображения"""
         self.surf = pygame.image.load('image/target6.png')
         scale = pygame.transform.scale(self.surf, (100, 50))
         scale = pygame.transform.flip(scale, (self.vx > 0), False)
@@ -498,6 +508,7 @@ class Plane():
             new_bomb.position(self.x, self.y)
             bombs.append(new_bomb)
             self.time = pygame.time.get_ticks()
+
     def move(self, keys):
         if keys[pygame.K_a]:
             self.vx -= 0.3
@@ -550,12 +561,21 @@ while not finished:
             f1 = pygame.font.Font(None, 46)
             text1 = f1.render(i, 1, (0, 0, 0))
             screen.blit(text1, (450, 50 + j*50))
+        f1 = pygame.font.Font(None, 46)
+        text1 = f1.render("0.Белый фон", 1, (0, 0, 0))
+        screen.blit(text1, (450,  300))
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
                 menu = False
         keys = pygame.key.get_pressed()
+        if keys[pygame.K_0]:
+            BG_scale.fill(WHITE)
+            W = 800
+            H = 600
+            menu = False
+            finished = True
         for i, j in zip(range(1, 9), [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8]):
             if keys[j]:
                 image = 'image/BG' + str(i) + '.jpg'
@@ -588,7 +608,7 @@ while not finished:
 
     main.show_score()
     gun.draw()
-    gun.game_over()
+    gun.hp_bar()
     plane.draw()
     for t in targets:
         t.draw()
@@ -599,6 +619,12 @@ while not finished:
     for e in explosions:
         e.draw()
     pygame.display.update()
+
+    if gun.live <= 0:
+        gun.game_over()
+        pygame.display.update()
+        pygame.time.wait(5000)
+        finished = True
 
     clock.tick(FPS)
 
@@ -650,8 +676,10 @@ while not finished:
 
     for e in explosions:
         if e.hittest(gun):
-            gun.live -= 1
+            gun.hit()
+
         e.delete()
+
 
 
 pygame.quit()
