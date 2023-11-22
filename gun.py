@@ -278,7 +278,7 @@ class Target:
         self.screen = screen
         self.x = random.randint(W-300, W-50)
         self.y = random.randint(H-200, H-50)
-        self.r = random.randint(5, 50)
+        self.r = 20
         self.color = RED
         self.points = 0
         self.live = 1
@@ -332,21 +332,26 @@ class Target:
 
     def targetbomb(self):
         """описывает сброс бомб мишенью"""
-        global bombs
-        new_bomb = Bomb(self.screen)
-        new_bomb.position(self.x, self.y)
-        bombs.append(new_bomb)
-        self.start_ticks = pygame.time.get_ticks()
+        pass
 
 
 class TargetHorizontal(Target):
     def __init__(self):
         super().__init__()
         self.vx = random.randint(2, 10)
+
     def new_target(self):
         """ Инициализация новой цели. """
         super().new_target()
         self.vx = random.randint(2, 10)
+
+    def targetbomb(self):
+        """описывает сброс бомб мишенью"""
+        global bombs
+        new_bomb = Bomb(self.screen)
+        new_bomb.position(self.x, self.y)
+        bombs.append(new_bomb)
+        self.start_ticks = pygame.time.get_ticks()
 
 class TargetVertical(Target):
     def __init__(self):
@@ -362,17 +367,26 @@ class TargetRandom(Target):
         super().__init__()
         self.vx = random.randint(2, 10)
         self.vy = random.randint(2, 10)
+
     def new_target(self):
         """ Инициализация новой цели. """
         super().new_target()
         self.vx = random.randint(2, 10)
         self.vy = random.randint(2, 10)
 
+    def targetbomb(self):
+        global bombs
+        new_bomb = Bomb(self.screen)
+        new_bomb.position(self.x, self.y)
+        bombs.append(new_bomb)
+        self.start_ticks = pygame.time.get_ticks()
+
 class TargetTeleport(Target):
     def __init__(self):
         super().__init__()
         self.vx = random.randint(2, 10)
         self.vy = random.randint(2, 10)
+        self.r = random.randint(5, 50)
         self.time = 0
 
     def move(self):
@@ -411,15 +425,15 @@ class Plane():
         self.screen = screen
         self.x = random.randint(W-300, W-50)
         self.y = random.randint(H-200, H-50)
-        self.r = random.randint(5, 50)
+        self.r = 20
         self.color = RED
         self.points = 0
         self.live = 1
         self.vx = 0
         self.vy = 0
-        self.start_ticks = pygame.time.get_ticks()
+        self.time = pygame.time.get_ticks()
 
-    def new_target(self):
+    def new_plane(self):
         """ Инициализация новой цели. """
         self.x = random.randint(W-300, W-50)
         self.y = random.randint(H-200, H-50)
@@ -429,9 +443,10 @@ class Plane():
         self.color = RED
         self.live = 1
 
-    def hit(self, points=1):
+    def hit(self):
         """Попадание шарика в цель."""
-        self.points += points
+        global points
+        points += 5
 
     def draw(self):
         self.surf = pygame.image.load('image/target6.png')
@@ -449,26 +464,15 @@ class Plane():
         self.rect = scale.get_rect(center=(self.x, self.y))
         self.surf.set_colorkey((255, 255, 255))
         screen.blit(scale, self.rect)
-        """pygame.draw.circle(
-            self.screen,
-            self.color,
-            (self.x, self.y),
-            self.r
-        )"""
 
-    def show_points(self):
-        """Выводит счетчик очков на экран"""
-        f1 = pygame.font.Font(None, 36)
-        text1 = f1.render("Количество очков:" + str(self.points), 1, (90, 40, 250))
-        screen.blit(text1, (10, 50))
     def bomb(self, keys):
         """описывает сброс бомб мишенью"""
         global bombs
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and ((pygame.time.get_ticks() - self.time)> 500):
             new_bomb = Bomb(self.screen)
             new_bomb.position(self.x, self.y)
             bombs.append(new_bomb)
-        self.start_ticks = pygame.time.get_ticks()
+            self.time = pygame.time.get_ticks()
     def move(self, keys):
         if keys[pygame.K_a]:
             self.vx -= 0.3
@@ -598,6 +602,12 @@ while not finished:
     for b in balls:
         b.move()
         b.delete()
+        if b.hittest(plane):
+            b.hitevent()
+        if b.hittest(plane) and plane.live:
+            plane.live = 0
+            plane.hit()
+            plane.new_plane()
         for t in targets:
             if b.hittest(t):
                 b.hitevent()
