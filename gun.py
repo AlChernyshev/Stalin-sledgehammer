@@ -315,11 +315,13 @@ class Target:
         self.y = random.randint(H-200, H-50)
         self.r = 20
         self.color = RED
-        self.points = 0
+        self.point = 1
         self.live = 1
         self.vx = 0
         self.vy = 0
         self.start_ticks = pygame.time.get_ticks()
+        self.hit_time = - 2000
+        self.bullet_spent = 0
 
     def new_target(self):
         """ Инициализация новой цели. """
@@ -333,8 +335,17 @@ class Target:
 
     def hit(self):
         """Попадание шарика в цель."""
-        global points
-        points += 1
+        global points, bullet
+        points += self.point
+        self.hit_time = pygame.time.get_ticks()
+        self.bullet_spent = bullet
+        bullet = 0
+
+    def display_hit(self):
+        if (pygame.time.get_ticks() - self.hit_time < 1000):
+            f1 = pygame.font.Font(None, 36)
+            text1 = f1.render("Вы сбили мишень за " + str(self.bullet_spent) + " выстрелов", 1, (82, 2, 5))
+            screen.blit(text1, (W * 0.3, H * 0.4))
 
     def draw(self):
         """Отрисовка мишени с загруженного изображения"""
@@ -374,6 +385,7 @@ class TargetHorizontal(Target):
     def __init__(self):
         super().__init__()
         self.vx = random.randint(2, 10)
+        self.point = 2
 
     def new_target(self):
         """ Инициализация новой цели. """
@@ -392,6 +404,7 @@ class TargetVertical(Target):
     def __init__(self):
         super().__init__()
         self.vy = random.randint(2, 10)
+        self.point = 2
     def new_target(self):
         """ Инициализация новой цели. """
         super().new_target()
@@ -402,6 +415,7 @@ class TargetRandom(Target):
         super().__init__()
         self.vx = random.randint(2, 10)
         self.vy = random.randint(2, 10)
+        self.point = 3
 
     def new_target(self):
         """ Инициализация новой цели. """
@@ -423,6 +437,7 @@ class TargetTeleport(Target):
         self.vy = random.randint(2, 10)
         self.r = random.randint(5, 50)
         self.time = 0
+        self.point = 4
 
     def move(self):
         a = pygame.time.get_ticks()/1000
@@ -467,6 +482,7 @@ class Plane():
         self.vx = 0
         self.vy = 0
         self.time = pygame.time.get_ticks()
+        self.point = 5
 
     def new_plane(self):
         """ Инициализация новой цели. """
@@ -481,7 +497,7 @@ class Plane():
     def hit(self):
         """Попадание шарика в цель."""
         global points
-        points += 5
+        points += self.point
 
     def draw(self):
         self.surf = pygame.image.load('image/target6.png')
@@ -612,6 +628,7 @@ while not finished:
     plane.draw()
     for t in targets:
         t.draw()
+        #t.display_hit()
     for b in balls:
         b.draw()
     for bm in bombs:
