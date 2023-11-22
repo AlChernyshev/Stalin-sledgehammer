@@ -23,6 +23,25 @@ H = 900
 W0 = W
 H0 = H
 
+class Main:
+    def __init__(self):
+        self.time = pygame.time.get_ticks()
+    def add_target(self, keys):
+        global targets
+        if keys[pygame.K_9] and ((pygame.time.get_ticks() - self.time)//1000 > 1):
+            new_target = choice([Target(), TargetTeleport(), TargetRandom(), TargetHorizontal(), TargetVertical()])
+            targets.append(new_target)
+            self.time = pygame.time.get_ticks()
+
+    def delete_target(self, keys):
+        if keys[pygame.K_0] and (len(targets)>0):
+            targets.pop()
+
+    def show_score(self):
+        """Выводит счетчик очков на экран"""
+        f1 = pygame.font.Font(None, 36)
+        text1 = f1.render("Количество очков:" + str(points), 1, (90, 40, 250))
+        screen.blit(text1, (10, 50))
 class Ball:
     def __init__(self, screen: pygame.Surface, x=40, y= H-100):
         """ Конструктор класса ball
@@ -277,9 +296,10 @@ class Target:
         self.color = RED
         self.live = 1
 
-    def hit(self, points=1):
+    def hit(self):
         """Попадание шарика в цель."""
-        self.points += points
+        global points
+        points += 1
 
     def draw(self):
         self.surf = pygame.image.load('image/target6.png')
@@ -295,12 +315,6 @@ class Target:
         self.rect = scale.get_rect(center=(self.x, self.y))
         self.surf.set_colorkey((255, 255, 255))
         screen.blit(scale, self.rect)
-
-    def show_points(self):
-        """Выводит счетчик очков на экран"""
-        f1 = pygame.font.Font(None, 36)
-        text1 = f1.render("Количество очков:" + str(self.points), 1, (90, 40, 250))
-        screen.blit(text1, (10, 50))
 
     def move(self):
         """Движение мишеней с постоянными скоростями и отражение от стен
@@ -484,9 +498,11 @@ BG_scale_rect = BG_scale.get_rect(center=(W/2, H/2))
 
 screen = pygame.display.set_mode((800, 600))
 bullet = 0
+points = 0
 balls = []
 bombs = []
 explosions = []
+targets = []
 finished = False
 menu = True
 
@@ -531,25 +547,21 @@ while not finished:
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
-target = TargetRandom()
-target2 = TargetTeleport()
+main = Main()
 plane = Plane()
 finished = False
 
 while not finished:
     screen.blit(BG_scale, BG_scale_rect)
-    gun.draw()
     keys = pygame.key.get_pressed()
-    gun.move(keys)
-    target.show_points()
-    target.draw()
-    target2.draw()
-    target.move()
-    target2.move()
-    plane.draw()
-    plane.move(keys)
-    plane.bomb(keys)
+    main.add_target(keys)
+    main.delete_target(keys)
 
+    main.show_score()
+    gun.draw()
+    plane.draw()
+    for t in targets:
+        t.draw()
     for b in balls:
         b.draw()
     for bm in bombs:
@@ -558,12 +570,7 @@ while not finished:
         e.draw()
     pygame.display.update()
 
-
-
     clock.tick(FPS)
-    seconds = (pygame.time.get_ticks() - target.start_ticks) / 1000
-    if seconds > 1 + random.randint(0, 100)/10:
-        target.targetbomb()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -577,19 +584,27 @@ while not finished:
         elif event.type == pygame.KEYDOWN:
             gun.typeBall(event)
 
+    gun.move(keys)
+
+    plane.move(keys)
+    plane.bomb(keys)
+
+    for t in targets:
+        t.move()
+        seconds = (pygame.time.get_ticks() - t.start_ticks) / 1000
+        if seconds > 1 + random.randint(0, 100) / 10:
+            t.targetbomb()
+
     for b in balls:
         b.move()
         b.delete()
-        if b.hittest(target) or b.hittest(target2):
-            b.hitevent()
-        if b.hittest(target) and target.live:
-            target.live = 0
-            target.hit()
-            target.new_target()
-        if b.hittest(target2) and target2.live:
-            target2.live = 0
-            target.hit()
-            target2.new_target()
+        for t in targets:
+            if b.hittest(t):
+                b.hitevent()
+            if b.hittest(t) and t.live:
+                t.live = 0
+                t.hit()
+                t.new_target()
     gun.power_up()
 
     for bm in bombs:
