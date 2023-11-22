@@ -119,7 +119,6 @@ class Ball:
 
     def hittest(self, obj):
         """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
-
         Args:
             obj: Обьект, с которым проверяется столкновение.
         Returns:
@@ -163,8 +162,7 @@ class Bomb(Ball):
     def draw(self):
         self.surf = pygame.image.load('image/bomb.png')
         self.surf.set_colorkey((255, 255, 255))
-        scale = pygame.transform.scale(
-            self.surf, (20, 30))
+        scale = pygame.transform.scale(self.surf, (20, 30))
         scale_rect = scale.get_rect(center=(self.x, self.y))
         screen.blit(scale, scale_rect)
 
@@ -183,6 +181,7 @@ class Explosion:
         self.y = 0
         self.surf = pygame.image.load('image/explosion1.png')
         self.frame = 0
+        self.r = 20
     def draw(self):
         if (self.frame > 0) and (self.frame < 24):
             self.frame += 24/30
@@ -196,6 +195,15 @@ class Explosion:
         if self.frame > 24:
             explosions.pop(explosions.index(self))
 
+    def hittest(self, obj):
+        """Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте obj.
+        Args:
+            obj: Обьект, с которым проверяется столкновение.
+        Returns:
+            Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
+        """
+        return ((((self.x - obj.x)**2 + (self.y - obj.y)**2)) < (self.r + obj.r)**2)
+
 
 class Gun:
     def __init__(self, screen):
@@ -205,8 +213,12 @@ class Gun:
         self.an = 1
         self.color = GREY
         self.x = 40
-        self.y = H-100
+        self.y = H-20
+        self.vx = 0
         self.type = 1
+        self.r = 25
+        self.live = 5
+        self.time = pygame.time.get_ticks()
 
     def fire2_start(self, event):
         self.f2_on = 1
@@ -244,12 +256,12 @@ class Gun:
             self.color = GREY
 
     def draw(self):
-        r = pygame.Rect(self.x, self.y, 10, 5)
-        pygame.draw.rect(
-            self.screen,
-            self.color,
-            r
-        )
+        self.surf = pygame.image.load('image/tank1.png')
+        self.surf.set_colorkey((255, 255, 255))
+        scale = pygame.transform.scale(self.surf, (50, 50))
+        scale = pygame.transform.flip(scale, (self.vx > 0), False)
+        scale_rect = scale.get_rect(center=(self.x, self.y))
+        screen.blit(scale, scale_rect)
 
     def power_up(self):
         if self.f2_on:
@@ -267,9 +279,23 @@ class Gun:
 
     def move(self, keys):
         if keys[pygame.K_LEFT] and self.x > 20:
-            self.x -= 3
+            self.vx = 5
+            self.x -= 5
         elif keys[pygame.K_RIGHT] and self.x < W-20:
-            self.x += 3
+            self.x += 5
+            self.vx = -5
+
+    def hit(self):
+        if (pygame.time.get_ticks()-self.time) > 1000:
+            self.live -= 1
+            self.time = pygame.time.get_ticks()
+
+    def game_over(self):
+        if self.live <= 0:
+            """Завершает игру если закончились жизни"""
+            f1 = pygame.font.Font(None, 36)
+            text1 = f1.render("Поражение", 1, (90, 40, 250))
+            screen.blit(text1, (200, 250))
 
 class Target:
     def __init__(self):
@@ -304,8 +330,7 @@ class Target:
     def draw(self):
         self.surf = pygame.image.load('image/target6.png')
         scale = pygame.transform.scale(self.surf, (100, 50))
-        scale = pygame.transform.flip(
-            scale, (self.vx > 0), False)
+        scale = pygame.transform.flip(scale, (self.vx > 0), False)
         if self.vx == 0:
             if self.vy != 0:
                 scale = pygame.transform.rotate(scale, 90)
@@ -563,6 +588,7 @@ while not finished:
 
     main.show_score()
     gun.draw()
+    gun.game_over()
     plane.draw()
     for t in targets:
         t.draw()
@@ -589,6 +615,8 @@ while not finished:
             gun.typeBall(event)
 
     gun.move(keys)
+    gun.power_up()
+
 
     plane.move(keys)
     plane.bomb(keys)
@@ -615,13 +643,15 @@ while not finished:
                 t.live = 0
                 t.hit()
                 t.new_target()
-    gun.power_up()
 
     for bm in bombs:
         bm.move()
         bm.delete()
 
     for e in explosions:
+        if e.hittest(gun):
+            gun.live -= 1
         e.delete()
+
 
 pygame.quit()
