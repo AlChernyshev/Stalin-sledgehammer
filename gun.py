@@ -284,6 +284,7 @@ class Gun:
             self.color = GREY
 
     def draw(self):
+        """отрисовка пушки"""
         self.surf = pygame.image.load('image/tank1.png')
         self.surf.set_colorkey((255, 255, 255))
         scale = pygame.transform.scale(self.surf, (50, 50))
@@ -300,12 +301,14 @@ class Gun:
             self.color = GREY
 
     def typeBall(self, event):
+        """выбор типа снарядов"""
         if event.key == pygame.K_1:
             self.type = 1
         if event.key == pygame.K_2:
             self.type = 2
 
     def move(self, keys):
+        """Движение пушки"""
         if keys[pygame.K_LEFT] and self.x > 20:
             self.vx = 5
             self.x -= 5
@@ -314,13 +317,14 @@ class Gun:
             self.vx = -5
 
     def hit(self):
+        """описывает что происходит при попадании по пушке"""
         if (pygame.time.get_ticks()-self.time) > 1200:
             self.live -= 1
             self.time = pygame.time.get_ticks()
 
     def game_over(self):
+        """Завершает игру если закончились жизни"""
         if self.live <= 0:
-            """Завершает игру если закончились жизни"""
             self.surf = pygame.image.load('image/death.jpg')
             scale = pygame.transform.scale(self.surf, (W, H))
             self.rect = scale.get_rect(center=(W/2, H/2))
@@ -330,6 +334,7 @@ class Gun:
             screen.blit(text1, (W*0.4, H*0.6))
 
     def hp_bar(self):
+        """выводит полоску здоровья пушки"""
         pygame.draw.rect(self.screen, (0, 0, 0), (W - 221, 9, 202, 32), 1)
         pygame.draw.rect(self.screen, (242, 11, 7), (W-220, 10, (200//self.max_live)*self.live, 30))
 
@@ -369,6 +374,7 @@ class Target:
         bullet = 0
 
     def display_hit(self):
+        """выводит текст сообщающий количество затраченных на сбитие мишени выстрелов"""
         if (pygame.time.get_ticks() - self.hit_time < 1000):
             f1 = pygame.font.Font(None, 36)
             text1 = f1.render("Вы сбили мишень за " + str(self.bullet_spent) + " выстрелов", 1, (82, 2, 5))
