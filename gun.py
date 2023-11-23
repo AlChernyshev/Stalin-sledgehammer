@@ -36,8 +36,9 @@ class Main:
 
     def delete_target(self, keys):
         """удаление мишени"""
-        if keys[pygame.K_0] and (len(targets)>0):
+        if keys[pygame.K_0] and (len(targets)>0) and ((pygame.time.get_ticks() - self.time)//1000 > 1):
             targets.pop()
+            self.time = pygame.time.get_ticks()
 
     def show_score(self):
         """Выводит счетчик очков на экран"""
