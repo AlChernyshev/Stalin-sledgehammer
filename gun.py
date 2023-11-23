@@ -42,6 +42,21 @@ class Main:
         f1 = pygame.font.Font(None, 36)
         text1 = f1.render("Количество очков:" + str(points), 1, (90, 40, 250))
         screen.blit(text1, (10, 50))
+
+    def menu_draw(self):
+        f = pygame.font.Font(None, 56)
+        text = f.render("Выберите фон:", 1, (90, 140, 250))
+        screen.blit(text, (250, 50))
+        f1 = pygame.font.Font(None, 46)
+        for i, j in zip(["1.Аустерлиц", "2.Бородино", "3.Переход через Альпы", "4.Принцеса Греза"], range(1, 5)):
+            text1 = f1.render(i, 1, (0, 0, 0))
+            screen.blit(text1, (50, 50 + j * 50))
+        for i, j in zip(["5.Апофеоз войны", "6.У крепостной стены", "7.Госдолг США", "8.Черный фон"], range(1, 5)):
+            text1 = f1.render(i, 1, (0, 0, 0))
+            screen.blit(text1, (450, 50 + j * 50))
+        text1 = f1.render("0.Белый фон", 1, (0, 0, 0))
+        screen.blit(text1, (450, 300))
+
 class Ball:
     def __init__(self, screen: pygame.Surface, x=40, y= H-100):
         """ Конструктор класса ball
@@ -561,25 +576,13 @@ explosions = []
 targets = []
 finished = False
 menu = True
+main = Main()
 
 """Настройка фона"""
 while not finished:
     while menu:
         screen.fill(WHITE)
-        f = pygame.font.Font(None, 56)
-        text = f.render("Выберите фон:", 1, (90, 140, 250))
-        screen.blit(text, (250, 50))
-        for i, j in zip(["1.Аустерлиц", "2.Бородино", "3.Переход через Альпы", "4.Принцеса Греза"], range(1,5)):
-            f1 = pygame.font.Font(None, 46)
-            text1 = f1.render(i, 1, (0, 0, 0))
-            screen.blit(text1, (50, 50 + j*50))
-        for i, j in zip(["5.Апофеоз войны", "6.У крепостной стены", "7.Госдолг США", "8.Черный фон"], range(1,5)):
-            f1 = pygame.font.Font(None, 46)
-            text1 = f1.render(i, 1, (0, 0, 0))
-            screen.blit(text1, (450, 50 + j*50))
-        f1 = pygame.font.Font(None, 46)
-        text1 = f1.render("0.Белый фон", 1, (0, 0, 0))
-        screen.blit(text1, (450,  300))
+        main.menu_draw()
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -605,14 +608,13 @@ while not finished:
                 H = int(BG_H/scale)
                 BG_scale = pygame.transform.scale(BG_surf, (W, H))
                 BG_scale_rect = BG_scale.get_rect(center=(W / 2, H / 2))
-                screen = pygame.display.set_mode((W, H), )
+                screen = pygame.display.set_mode((W, H))
                 menu = False
                 finished = True
                 #Изменить позицию окна
 
 clock = pygame.time.Clock()
 gun = Gun(screen)
-main = Main()
 plane = Plane()
 finished = False
 
