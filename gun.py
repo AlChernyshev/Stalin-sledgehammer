@@ -27,6 +27,7 @@ class Main:
     def __init__(self):
         self.time = pygame.time.get_ticks()
     def add_target(self, keys):
+        """"добавление мишени"""
         global targets
         if keys[pygame.K_9] and ((pygame.time.get_ticks() - self.time)//1000 > 1):
             new_target = choice([Target(), TargetTeleport(), TargetRandom(), TargetHorizontal(), TargetVertical()])
@@ -34,6 +35,7 @@ class Main:
             self.time = pygame.time.get_ticks()
 
     def delete_target(self, keys):
+        """удаление мишени"""
         if keys[pygame.K_0] and (len(targets)>0):
             targets.pop()
 
@@ -44,6 +46,7 @@ class Main:
         screen.blit(text1, (10, 50))
 
     def menu_draw(self):
+        """отрисовка меню выбора фона"""
         f = pygame.font.Font(None, 56)
         text = f.render("Выберите фон:", 1, (90, 140, 250))
         screen.blit(text, (250, 50))
@@ -64,6 +67,7 @@ class Ball:
         Args:
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
+        r
         """
         self.screen = screen
         self.x = x
@@ -75,6 +79,7 @@ class Ball:
         self.live = 30
 
     def position(self, x, y):
+        """задает позицию шарика"""
         self.x = x
         self.y = y
 
@@ -126,7 +131,7 @@ class Ball:
         )
 
     def delete(self):
-        """Удаляет неподвижный снаряд"""
+        """Удаляет снаряд если live < 0"""
         if self.vy**2 +self.vx**2 == 0:
             self.live -= 1
         if self.live <= 0:
@@ -143,13 +148,13 @@ class Ball:
 
     def hitevent(self):
         """Описывает что происходит с снарядом при столкновение"""
-        self.live -= 50 #Удаление снарядов при столкновении с мищенью
+        self.live -= 50
 
 class ExplosiveBall(Ball):
     """Тип снарядов которые при столкновении с целью распадаются на несколько"""
     def hitevent(self):
         """Описывает что происходит с снарядом при столкновение"""
-        self.live -= 50 #Удаление снарядов при столкновении с мищенью
+        self.live -= 50
         for i in [1, -1]:
             for j in [1, -1]:
                 new_ball = Ball(self.screen)
@@ -161,6 +166,7 @@ class ExplosiveBall(Ball):
                 balls.append(new_ball)
 
 class Bomb(Ball):
+    """Описывает движение"""
     def move(self):
         self.vy -= 0.2
         self.y -= self.vy
@@ -169,12 +175,14 @@ class Bomb(Ball):
             self.vx = self.vx * 0
 
     def delete(self):
+        """Удаляет бомбу если live < 0"""
         if self.y >= H-self.r:
             self.live -= 50
         if self.live <= 0:
             self.explosion()
             bombs.pop(bombs.index(self))
     def draw(self):
+        """отрисовка бомбы"""
         self.surf = pygame.image.load('image/bomb.png')
         self.surf.set_colorkey((255, 255, 255))
         scale = pygame.transform.scale(self.surf, (20, 30))
@@ -182,6 +190,7 @@ class Bomb(Ball):
         screen.blit(scale, scale_rect)
 
     def explosion(self):
+        """добавляет взрыв"""
         global explosions
         new_explosion = Explosion()
         new_explosion.x = self.x
@@ -192,12 +201,14 @@ class Bomb(Ball):
 
 class Explosion:
     def __init__(self):
+        """конструктор класса explosion"""
         self.x = 0
         self.y = 0
         self.surf = pygame.image.load('image/explosion1.png')
         self.frame = 0
         self.r = 20
     def draw(self):
+        """отрисовка взрыва"""
         if (self.frame > 0) and (self.frame < 24):
             self.frame += 24/30
             self.surf = pygame.image.load('image/explosion' + str(int(self.frame//(24/15))) + '.png')
@@ -207,6 +218,7 @@ class Explosion:
             screen.blit(scale, scale_rect)
 
     def delete(self):
+        """удаляет взрыв если он полностью отрисовался"""
         if self.frame > 24:
             explosions.pop(explosions.index(self))
 
