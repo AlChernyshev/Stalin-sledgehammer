@@ -234,6 +234,7 @@ class Explosion:
 
 class Gun:
     def __init__(self, screen):
+        """конструктор класса Gun"""
         self.screen = screen
         self.f2_power = 10
         self.f2_on = 0
@@ -415,6 +416,7 @@ class Target:
 
 
 class TargetHorizontal(Target):
+    """мишень движущаяся по горизонтали"""
     def __init__(self):
         super().__init__()
         self.vx = random.randint(2, 10)
@@ -434,6 +436,7 @@ class TargetHorizontal(Target):
         self.start_ticks = pygame.time.get_ticks()
 
 class TargetVertical(Target):
+    """мишень движущаяся по вертикали"""
     def __init__(self):
         super().__init__()
         self.vy = random.randint(2, 10)
@@ -444,6 +447,7 @@ class TargetVertical(Target):
         self.vy = random.randint(2, 10)
 
 class TargetRandom(Target):
+    """мишень движущаяся и по горизонтали и по вертикали"""
     def __init__(self):
         super().__init__()
         self.vx = random.randint(2, 10)
@@ -464,6 +468,7 @@ class TargetRandom(Target):
         self.start_ticks = pygame.time.get_ticks()
 
 class TargetTeleport(Target):
+    """мишень передвигающаяся рывками"""
     def __init__(self):
         super().__init__()
         self.vx = random.randint(2, 10)
@@ -502,6 +507,7 @@ class TargetTeleport(Target):
             )
 
 class Plane():
+    """управляемая мишень"""
     def __init__(self):
         """ Конструктор класса Plane
         """
@@ -533,6 +539,7 @@ class Plane():
         points += self.point
 
     def draw(self):
+        """отрисовка самолета"""
         self.surf = pygame.image.load('image/target6.png')
         scale = pygame.transform.scale(self.surf, (100, 50))
         scale = pygame.transform.flip(
@@ -559,6 +566,7 @@ class Plane():
             self.time = pygame.time.get_ticks()
 
     def move(self, keys):
+        """описывает движение"""
         if keys[pygame.K_a]:
             self.vx -= 0.3
         elif keys[pygame.K_d]:
